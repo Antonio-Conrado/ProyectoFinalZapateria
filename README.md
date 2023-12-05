@@ -38,6 +38,8 @@ Los siguientes endpoints están disponibles para las siguientes entidades:
 #### Captura de la clave Acceso de un usuario utilizando Bcrypt en la base de datos
 ![](https://iili.io/JIBRXgs.jpg)
 
+### Para autenticarse utilizar los datos del archivo Usuarios.txt
+
 ## Blazor Web Assembly
 
 Para consumir la API REST, se utilizó Blazor Web Assembly.
