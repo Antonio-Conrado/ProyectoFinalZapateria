@@ -19,11 +19,17 @@ Esta API REST se creo con ASP.NET Core Web API y proporciona una interfaz para r
 Los siguientes endpoints están disponibles para las siguientes entidades:
 
 **Categoria:**  Operaciones CRUD para categorías.
+
 **Marca:** Permiten a los usuarios consultar las marcas disponibles.
+
 **Talla:** Permiten a los usuarios consultar las tallas disponibles.
+
 **Rol:** Operaciones CRUD para Rol.
+
 **Venta:** Permiten a los usuarios consultar registrar nuevas ventas.
+
 **Inventario:** Operaciones CRUD para Inventario.
+
 **Usuario:**  Operaciones CRUD para Usuario, además se utilizó bcrypt para el hash de la contraseña en la base de datos y se añadio el endpoint para autenticarse.
 
 #### Captura de un endpoint para obtener la lista de Roles a traves de swagger
