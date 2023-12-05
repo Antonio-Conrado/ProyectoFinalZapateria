@@ -38,7 +38,8 @@ Los siguientes endpoints están disponibles para las siguientes entidades:
 #### Captura de la clave Acceso de un usuario utilizando Bcrypt en la base de datos
 ![](https://iili.io/JIBRXgs.jpg)
 
-##Blazor Web Assembly
+## Blazor Web Assembly
+
 Para consumir la API REST, se utilizó Blazor Web Assembly.
 
 La autorización basada en roles se implementó utilizando el componente Authorized. Este componente comprueba el rol del usuario actual y muestra la vista solo si el usuario tiene el rol requerido mediante el proceso de autenticacion mediante Login.
