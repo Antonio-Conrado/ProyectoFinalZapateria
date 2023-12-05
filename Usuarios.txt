@@ -1,18 +1,19 @@
-	
--- Insertar administradores
-INSERT INTO tblUsuario (IdRol, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, Email, NombreUsuario, ClaveAcceso, Telefono, Estado)
-VALUES
-    (1, 'Juan', 'Carlos', 'López', 'González', 'juan.lopez@example.com', 'juanlopez', 'claveJuan1', '57778888', 1),
-    (1, 'María', 'Elena', 'Martínez', 'García', 'maria.martinez@example.com', 'mariamartinez', 'claveMaria1', '57778889', 1);
-
--- Insertar empleados
-INSERT INTO tblUsuario (IdRol, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, Email, NombreUsuario, ClaveAcceso, Telefono, Estado)
-VALUES
-    (2, 'Ricardo', 'Antonio', 'Hernández', 'Pérez', 'ricardo.hernandez@example.com', 'ricardohernandez', 'claveRicardo1', '57778890', 1),
-    (2, 'Laura', 'Isabel', 'Gómez', 'Rodríguez', 'laura.gomez@example.com', 'lauragomez', 'claveLaura1', '57778891', 1),
-    (2, 'Carlos', 'Alberto', 'Díaz', 'Fernández', 'carlos.diaz@example.com', 'carlosdiaz', 'claveCarlos1', '57778892', 1);
 
 
+---Administradores---
+email: juan.lopez@example.com
+claveAccesso: claveJuan1
+
+email: maria.martinez@example.com
+claveAccesso: claveMaria1
 
 
-	
+***Empleados***
+email: ricardo.hernandez@example.com
+claveAccesso: claveRicardo1
+
+email: laura.gomez@example.com
+claveAccesso: claveLaura1
+
+email: carlos.diaz@example.com
+claveAccesso: claveCarlos1
