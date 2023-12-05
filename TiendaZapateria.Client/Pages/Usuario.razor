@@ -1,0 +1,218 @@
+﻿@page "/usuarios"
+
+@inject IJSRuntime JSRuntime
+@inject SweetAlertService Swal
+@inject IRolService rolService;
+@inject IUsuarioService usuarioService;
+@inject NavigationManager navegacion;
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components.Authorization;
+@using TiendaZapateria.Client.Pages.Modales;
+@attribute [Authorize(Roles = "Administrador")]
+
+@using TiendaZapateria.Client.wwwroot.Paginacion;
+
+<h3>Categorias</h3>
+
+<button class="btn-grad-1 mb-3" @onclick="MostrarModalAgregar">Nuevo Usuario</button>
+
+<div class="mb-3">
+    <input type="text" class="form-control" @oninput="HandleSearch" placeholder="Filtrar por Nombre Usuario o Rol">
+
+</div>
+
+<div class="table-responsive-sm">
+    <table class="table table-striped">
+        <thead class="">
+            <tr>
+                <th>Primer Nombre</th>
+                <th>Segundo Nombre</th>
+                <th>Primer Apellido</th>
+                <th>Segundo Apellido</th>
+                <th>Rol</th>
+                <th>Email</th>
+                <th>Nombre Usuario</th>
+                <th>Clave Acceso</th>
+                <th>Teléfono</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (paginatedList != null)
+            {
+                var elementosFiltrada = string.IsNullOrEmpty(filtroNombre)
+                ? paginatedList
+                : paginatedList.Where(c => c.NombreUsuario.Contains(filtroNombre, StringComparison.OrdinalIgnoreCase) || c.IdRolNavigation.NombreRol.Contains(filtroNombre, StringComparison.OrdinalIgnoreCase));
+
+                @foreach (var item in elementosFiltrada)
+                {
+                    <tr>
+                        <td>@item.PrimerNombre</td>
+                        <td>@item.SegundoNombre</td>
+                        <td>@item.PrimerApellido</td>
+                        <td>@item.SegundoApellido</td>
+                        <td>@item.IdRolNavigation.NombreRol</td>
+                        <td>@item.Email</td>
+                        <td>@item.NombreUsuario</td>
+                        <td>@item.ClaveAcceso</td>
+                        <td>@item.Telefono</td>
+                        <td>
+                            <div class="d-flex">
+                                <button class="btn btn-primary btn-sm mb-2 d-block" @onclick="() => MostrarModalEditar(item.IdUsuario)">
+                                    <i class="oi oi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-danger btn-sm ms-2 mb-2 d-block" @onclick="(() => Eliminar(item.IdUsuario, item.PrimerNombre))">
+                                    <i class="oi oi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+
+        </tbody>
+    </table>
+</div>
+<div class="d-flex justify-content-end mt-3">
+    <Paginacion CurrentPage="currentPage"
+                ItemsPerPage="itemsPerPage"
+                TotalItems="lista.Count"
+                CurrentPageChanged="HandlePageChange" />
+</div>
+
+
+<MDUsuario @ref="modalAgregar" OnElementoActualizado="HandleElementoActualizado"></MDUsuario>
+
+
+@code {
+    List<UsuarioDTO> lista = new List<UsuarioDTO>();
+
+    IEnumerable<UsuarioDTO>? paginatedList;
+    int currentPage = 1;
+    int itemsPerPage = 10;
+
+    string filtroNombre = string.Empty;
+
+    private async Task HandleSearch(ChangeEventArgs e)
+    {
+        filtroNombre = e.Value.ToString();
+        UpdatePaginatedList();
+    }
+
+
+    private async Task HandlePageChange(int newPage)
+    {
+        currentPage = newPage;
+        UpdatePaginatedList();
+        StateHasChanged(); // Actualiza el componente
+    }
+    private async Task HandleElementoActualizado()
+    {
+        lista = await usuarioService.Lista();
+        if (lista != null)
+        {
+            UpdatePaginatedList();
+            StateHasChanged();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        lista = await usuarioService.Lista();
+        UpdatePaginatedList();
+    }
+
+    private void UpdatePaginatedList()
+    {
+
+        paginatedList = lista.Skip((currentPage - 1) * itemsPerPage).Take(itemsPerPage);
+
+    }
+
+
+
+    private async Task Eliminar(int id, string nombre)
+    {
+        var resultadoVerificacion = await usuarioService.VerificarUso(id);
+
+        if (resultadoVerificacion)
+        {
+            await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Error",
+                    Text = "El campo está siendo utilizado en otra tabla",
+                    Icon = SweetAlertIcon.Warning,
+                    ConfirmButtonText = "OK"
+                });
+        }
+        else
+        {
+            var resultado = await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "¿Está Seguro?",
+                    Text = "Eliminar" + " " + nombre,
+                    Icon = SweetAlertIcon.Warning,
+                    ShowCancelButton = true,
+                    ConfirmButtonText = "Eliminar",
+                    CancelButtonText = "Volver"
+                });
+
+            if (resultado.IsConfirmed)
+            {
+                var eliminado = await usuarioService.Eliminar(id);
+
+                if (eliminado)
+                {
+                    lista = lista!.FindAll(e => e.IdUsuario != id);
+                    UpdatePaginatedList();
+                    await MostrarAlertaEliminacion();
+                }
+            }
+        }
+    }
+
+    private async Task MostrarAlertaEliminacion()
+    {
+        await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Usuario Eliminado",
+                Text = "El Usuario ha sido eliminado exitosamente",
+                Icon = SweetAlertIcon.Success,
+                ConfirmButtonText = "OK"
+            });
+    }
+
+    MDUsuario modalAgregar; // Referencia al componente de modal
+
+    public void MostrarModalAgregar()
+    {
+        var btnTexto = "Guardar";
+        var titulo = "Agregar Nuevo";
+        modalAgregar.Agregar(titulo, btnTexto);
+        modalAgregar.MostrarModal();
+
+
+    }
+
+
+    public async Task MostrarModalEditar(int id)
+    {
+        var Editar = await usuarioService.Buscar(id);
+
+        if (Editar != null)
+        {
+            var btnTexto = "Actualizar";
+            var titulo = "Editar";
+            string estadoString = Editar.Estado.ToString();
+            modalAgregar.Actualizar(Editar.IdUsuario, Editar.IdRol, Editar.PrimerNombre, Editar.SegundoNombre, Editar.PrimerApellido, Editar.SegundoApellido,
+               Editar.Email, Editar.NombreUsuario ,Editar.ClaveAcceso, Editar.Telefono, titulo, btnTexto);
+            modalAgregar.MostrarModal();
+        }
+    }
+
+
+
+}
+
+
+

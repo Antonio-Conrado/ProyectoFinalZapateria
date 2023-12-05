@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "4S2lT46y+QlmZd67D3O0hIWeSgbNPEfwquROErFrvL4=",
+  "Source": "TiendaZapateria.Server",
+  "BasePath": "_content/TiendaZapateria.Server",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

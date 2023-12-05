@@ -1,0 +1,281 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@using System.Globalization;
+@inject IJSRuntime JSRuntime
+@inject SweetAlertService Swal;
+@inject IMarcaService marcaService
+@inject ITallaService tallaService
+@inject ICategoriaService categoriaService
+@inject IRolService rolService
+@inject IProductoService productoService
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components.Authorization;
+@attribute [Authorize(Roles = "Administrador, Empleado")]
+<EditForm Model="entidad" OnValidSubmit="OnValidSubmit">
+
+    <div Model="entidad" class="modal fade" id="modalAgregar" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header color-title">
+                    <h5 class="modal-title">@titulo</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="CerrarModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <label for="nombreCategoria">Producto</label>
+                        <input type="text" class="form-control" id="nombreCategoria" @bind="entidad.IdDetalleInventarioNavigation.IdProductoNavigation.NombreProducto" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"> Marca</label>
+                        <InputSelect class="form-select" @bind-Value="entidad.IdDetalleInventarioNavigation.IdMarca">
+                            <option value="0">-- Seleccionar --</option>
+                            @foreach (var item in listaMarca)
+                            {
+                                <option value="@item.IdMarca">@item.NombreMarca</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                     <div class="mb-3">
+                        <label class="form-label"> Categoria</label>
+                        <InputSelect class="form-select" @bind-Value="entidad.IdDetalleInventarioNavigation.IdCategoria">
+                            <option value="0">-- Seleccionar --</option>
+                            @foreach (var item in listaCategoria)
+                            {
+                                <option value="@item.IdCategoria">@item.NombreCategoria</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"> Talla</label>
+                        <InputSelect class="form-select" @bind-Value="entidad.IdDetalleInventarioNavigation.IdTalla">
+                            <option value="0">-- Seleccionar --</option>
+                            @foreach (var item in listaTalla)
+                            {
+                                <option value="@item.IdTalla">@item.TallaEuropea</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="nombreCategoria">Existencia</label>
+                        <input type="number" class="form-control" id="nombreCategoria" @bind="entidad.Existencia" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nombreCategoria">Precio Compra</label>
+                        <input type="number" class="form-control" id="nombreCategoria" @bind="entidad.PrecioCompra" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nombreCategoria">Precio Venta</label>
+                        <input type="number" class="form-control" id="nombreCategoria" @bind="entidad.IdDetalleInventarioNavigation.IdProductoNavigation.PrecioVenta" />
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="nombreCategoria">Lote</label>
+                        <input type="text" class="form-control" id="nombreCategoria" @bind="entidad.Lote" />
+                    </div>
+
+                  
+                    <div class="form-group">
+                        <label for="fechaIngreso">Fecha de Ingreso</label>
+                        <input type="date" class="form-control" id="fechaIngreso" @bind="entidad.FechaIngreso" />
+                    </div>
+
+
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cerrar" @onclick="CerrarModal">Cancelar</button>
+                    <button class="btn-guardar" type="submit">
+                        @btnTexto
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</EditForm>
+
+
+
+@code {
+    public int idEditar;
+
+    [Parameter]
+    public EventCallback OnElementoActualizado { get; set; }
+
+
+    [Parameter]
+    public EventCallback OnElementoNuevo { get; set; }
+
+    public RegistrarInventarioDTO entidad { get; set; } = new RegistrarInventarioDTO
+        {
+            IdDetalleInventarioNavigation = new RegistrarDetalleInventarioDTO
+            {
+                IdProductoNavigation = new RegistrarProductoDTO()
+            }
+        };
+
+    string titulo = string.Empty;
+    string btnTexto = string.Empty;
+
+
+
+    List<TallaDTO> listaTalla = new List<TallaDTO>();
+    List<MarcaDTO> listaMarca = new List<MarcaDTO>();
+    List<CategoriaDTO> listaCategoria = new List<CategoriaDTO>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaMarca = await marcaService.Lista();
+        listaTalla = await tallaService.Lista();
+        listaCategoria = await categoriaService.Lista();
+
+
+
+
+    }
+
+    public async Task Actualizar(int id, double precioCompra, int existencia, DateTime fechaIngreso, string Lote, int idCategoria, int idMarca,
+        int idColor, int idTalla, int idMaterial,string nombreProducto,double precioVenta, string tituloEdit, string btn)
+    {
+
+        if (idEditar == 0)
+        {
+            idEditar = id; // Asignar el ID si es una nueva categoría
+        }
+        entidad.IdInventario = id;
+        entidad.PrecioCompra = precioCompra;
+        entidad.Existencia =existencia;
+        entidad.FechaIngreso = fechaIngreso;
+        entidad.Lote = Lote;
+        entidad.IdDetalleInventarioNavigation.IdCategoria = idCategoria;
+        entidad.IdDetalleInventarioNavigation.IdMarca = idMarca;
+        entidad.IdDetalleInventarioNavigation.IdColor = idColor;
+        entidad.IdDetalleInventarioNavigation.IdTalla = idTalla;
+        entidad.IdDetalleInventarioNavigation.IdMaterial = idMaterial;
+        entidad.IdDetalleInventarioNavigation.IdProductoNavigation.NombreProducto = nombreProducto;
+        entidad.IdDetalleInventarioNavigation.IdProductoNavigation.PrecioVenta = precioVenta;
+
+        btnTexto = btn;
+        titulo = tituloEdit;
+
+
+    }
+
+
+    public async Task Agregar(string tituloEdit, string btn)
+    {
+
+        btnTexto = btn;
+        titulo = tituloEdit;
+
+        entidad.FechaIngreso = DateTime.Now;
+        entidad.IdDetalleInventarioNavigation.IdColor = 1;
+        entidad.IdDetalleInventarioNavigation.IdMaterial = 1;
+        await JSRuntime.InvokeVoidAsync("console.log", entidad);
+    }
+
+
+
+
+
+    private async Task OnValidSubmit()
+    {
+
+        if (string.IsNullOrWhiteSpace(entidad.IdDetalleInventarioNavigation.IdProductoNavigation.NombreProducto) || string.IsNullOrWhiteSpace(entidad.Lote) || entidad.FechaIngreso == null)
+        {
+
+            await MostrarMensajeError("Todos los campos son obligatorios");
+        }
+        else if (entidad.PrecioCompra <= 0 || entidad.IdDetalleInventarioNavigation.IdProductoNavigation.PrecioVenta <= 0 || entidad.Existencia <= 0 || entidad.IdDetalleInventarioNavigation.IdTalla <= 0 ||
+        entidad.IdDetalleInventarioNavigation.IdMarca <= 0 || entidad.IdDetalleInventarioNavigation.IdCategoria <= 0)
+        {
+            await MostrarMensajeError("Todos los campos son obligatorios");
+        }
+        else
+        {
+            int idDevuelto = 0;
+            bool operacionExitosa = false;
+            if (idEditar == 0)
+            {
+
+
+                await JSRuntime.InvokeVoidAsync("console.log", entidad);
+                idDevuelto = await productoService.Guardar(entidad);
+                await MostrarMensajeExito("Agregado Correctamente");
+                await CerrarModal();
+                await OnElementoActualizado.InvokeAsync();
+
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("console.log", entidad);
+                operacionExitosa = await productoService.Editar(entidad);
+                await MostrarMensajeExito("Editado Correctamente");
+                await CerrarModal();
+                await OnElementoActualizado.InvokeAsync();
+
+            }
+
+        }
+
+
+
+    }
+
+    private async Task MostrarMensajeError(string mensaje)
+    {
+
+        await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Error",
+                Text = mensaje,
+                Icon = SweetAlertIcon.Error,
+                ConfirmButtonText = "OK"
+            });
+    }
+
+
+    private async Task MostrarMensajeExito(string mensaje)
+    {
+
+        await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Exito",
+                Text = mensaje,
+                Icon = SweetAlertIcon.Success,
+                ConfirmButtonText = "OK"
+            });
+    }
+
+
+
+
+    public async Task MostrarModal()
+    {
+        await JSRuntime.InvokeVoidAsync("modalFunctions.mostrarModal", "modalAgregar");
+    }
+
+    public async Task CerrarModal()
+    {
+        await JSRuntime.InvokeVoidAsync("modalFunctions.cerrarModal", "modalAgregar");
+
+        idEditar = 0;
+        entidad = new RegistrarInventarioDTO()
+            {
+                IdDetalleInventarioNavigation = new RegistrarDetalleInventarioDTO
+                {
+                    IdProductoNavigation = new RegistrarProductoDTO()
+                }
+            };
+    }
+}

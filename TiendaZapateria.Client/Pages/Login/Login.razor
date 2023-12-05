@@ -1,0 +1,109 @@
+﻿@page "/"
+
+@layout LoginLayout
+@inject HttpClient httpClient
+@inject NavigationManager navManager
+@using BlazorLogin.Client.Extensiones;
+@using TiendaZapateria.Shared
+@inject IUsuarioService usuarioService;
+@inject SweetAlertService Swal
+
+@using System.Net.Http;
+@using System.Net.Http.Json;
+@inject IJSRuntime JSRuntime
+
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider autenticacionProvider
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Yinka Enoch Adedokun">
+	<title>Login Page</title>
+	<link href="css/login.css" rel="stylesheet" />
+</head>
+<body >
+	<!-- Main Content -->
+	<div class="container-fluid  d-flex align-items-center justify-content-center vh-100">
+		<div class="row main-content bg-success text-center">
+			<div class="col-md-4 fondo">
+			</div>
+			<div class="col-md-8 col-xs-12 col-sm-12 login_form ">
+				<div class="container-fluid">
+					<div class="row">
+						<h2 class="mt-3">Inciar Sesión</h2>
+					</div>
+					<div class="row">
+						<form control="" class="form-group">
+							<div class="row">
+								<input type="text" @bind="login.Email" name="username" id="username" class="form__input" placeholder="Email">
+							</div>
+							<div class="row">
+								<!-- <span class="fa fa-lock"></span> -->
+								<input type="password" @bind="login.ClaveAcceso" name="password" id="password" class="form__input" placeholder="Contraseña">
+							</div>
+							<div class="row">
+								<input type="checkbox" name="remember_me" id="remember_me" class="">
+								<label for="remember_me">Recuerdame!</label>
+							</div>
+							<div class="row justify-content-center">
+								<button type="button" @onclick="IniciarSesion" class="btn btn-primary">Iniciar Sesión</button>
+
+								<div class="text-center mt-3 mb-2 w-100 d-flex justify-content-center">
+									@if (mostrarCarga)
+									{
+										<div class="sk-chase">
+											<div class="sk-chase-dot"></div>
+											<div class="sk-chase-dot"></div>
+											<div class="sk-chase-dot"></div>
+											<div class="sk-chase-dot"></div>
+											<div class="sk-chase-dot"></div>
+											<div class="sk-chase-dot"></div>
+										</div>
+									}
+								</div>
+							</div>
+
+
+						</form>
+					</div>
+
+
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Footer -->
+
+</body>
+
+
+
+
+
+@code {
+	private AutorizacionRequest login = new AutorizacionRequest();
+	private bool mostrarCarga = false;
+
+	private async Task IniciarSesion()
+	{
+		mostrarCarga = true;
+		StateHasChanged();
+		var loginResponse = await usuarioService.IniciarSesion(login);
+
+
+		if(loginResponse.Resultado == true)
+		{
+			var autenticacionExt = (AutenticacionExtension)autenticacionProvider;
+			await autenticacionExt.ActualizarEstadoAutenticacion(loginResponse);
+			navManager.NavigateTo("/index");
+		}
+		else
+		{
+			await Swal.FireAsync("Error de inicio de sesión", "Las credenciales son inválidas", SweetAlertIcon.Error);
+			mostrarCarga = false;
+			StateHasChanged();
+		}
+
+	}
+}

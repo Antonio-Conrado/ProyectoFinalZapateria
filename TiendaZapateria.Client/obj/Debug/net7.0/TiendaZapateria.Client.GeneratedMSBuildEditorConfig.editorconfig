@@ -1,0 +1,93 @@
+is_global = true
+build_property.TargetFramework = net7.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = false
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = browser
+build_property.RootNamespace = TiendaZapateria.Client
+build_property.RootNamespace = TiendaZapateria.Client
+build_property.ProjectDir = D:\Examen Samuel\proyectofinal\TiendaZapateria\TiendaZapateria.Client\
+build_property.RazorLangVersion = 7.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = D:\Examen Samuel\proyectofinal\TiendaZapateria\TiendaZapateria.Client
+build_property._RazorSourceGeneratorDebug = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Pages/Categoria.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2F0ZWdvcmlhLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Pages/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXgucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Pages/Informe.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5mb3JtZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Pages/Login/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTG9naW5cTG9naW4ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Pages/Modales/MDCategoria.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTW9kYWxlc1xNRENhdGVnb3JpYS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Pages/Modales/MDProducto.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTW9kYWxlc1xNRFByb2R1Y3RvLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Pages/Modales/MDRol.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTW9kYWxlc1xNRFJvbC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Pages/Modales/MDUsuario.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTW9kYWxlc1xNRFVzdWFyaW8ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Pages/Producto.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvZHVjdG8ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Pages/Rol.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUm9sLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Pages/Usuario.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXN1YXJpby5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Pages/Venta.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVmVudGEucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Shared/LoginLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXExvZ2luTGF5b3V0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Shared/SurveyPrompt.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXFN1cnZleVByb21wdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/wwwroot/Paginacion/Paginacion.razor]
+build_metadata.AdditionalFiles.TargetPath = d3d3cm9vdFxQYWdpbmFjaW9uXFBhZ2luYWNpb24ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Shared/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE1haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-fo4ozdboy7
+
+[D:/Examen Samuel/proyectofinal/TiendaZapateria/TiendaZapateria.Client/Shared/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE5hdk1lbnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-dn9nfcolsg

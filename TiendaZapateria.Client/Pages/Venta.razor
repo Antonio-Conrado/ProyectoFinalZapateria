@@ -1,0 +1,352 @@
+﻿@page "/ventas"
+@using BlazorLogin.Client.Extensiones;
+@using TiendaZapateria.Shared
+@using TiendaZapateria.Client.Services
+@inject IProductoService productoServicio
+@inject IVentaService ventaServicio
+@inject IJSRuntime JSRuntime
+@using Blazored.SessionStorage
+@inject ISessionStorageService sessionStorageService
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components.Authorization;
+@inject SweetAlertService Swal;
+
+@attribute [Authorize(Roles = "Administrador, Empleado")]
+
+
+<div class="content">
+
+
+    <div class="row mt-4 mb-4">
+        <div class="col-lg-6">
+            <div class="row align-items-center">
+                <div class="col-2">
+                    <label for="Cliente">Cliente</label>
+                </div>
+                <div class="col-10">
+                    <InputText id="cliente" class="form-control" @bind-Value="venta.NombreCliente"></InputText>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="row align-items-center justify-content-end">
+                <label class="col-4" style="display: inline-block; text-align: right;" for="NumeroFactura">Número Factura</label>
+                <div class="col-2">
+                    <InputNumber id="factura" class="form-control" disabled @bind-Value="venta.NumeroFactura"></InputNumber>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+        
+
+    <div class="row mt-4">
+
+
+      
+
+
+        <div class="col-lg-4">
+            <input type="text" class="form-control" placeholder="Buscar producto por nombre" @ref="filtroInput" @oninput="FiltrarProductos" />
+
+            @if (!string.IsNullOrEmpty(filtroNombre))
+            {
+                <ul class="list-group mt-2">
+                    @foreach (var item in productosFiltrados)
+                    {
+                        <li class="list-group-item @(ProductoSeleccionado == item ? "selected-item" : "")"
+                        @onclick="() => SeleccionarProducto(item)">
+                            @item.IdDetalleInventarioNavigation.IdProductoNavigation.NombreProducto
+                        </li>
+                    }
+                </ul>
+            }
+
+        </div>
+        
+
+        <div class="col-lg-2">
+            <div class="row align-items-center">
+                <div class="col-6">
+                    <label for="precio">Precio</label>
+                </div>
+                <div class="col-6">
+                    <InputNumber id="precio" class="form-control" @bind-Value="precio" disabled></InputNumber>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2">
+            <div class="row align-items-center">
+                <div class="col-6">
+                    <label for="cantidad">Cantidad</label>
+                </div>
+                <div class="col-6">
+                    <InputNumber id="cantidad" class="form-control" @bind-Value="cantidad" min="0"></InputNumber>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2">
+            <button class="btn-agregarPro" @onclick="AgregarProducto">Agregar</button> <!-- Agrega un margen superior de 2 unidades -->
+        </div>
+       
+    </div>
+
+    <hr />
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Sub Total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in venta.TblDetalleVenta)
+            {
+                var producto = ProductoOriginales.FirstOrDefault(p => p.IdInventario == item.IdInventario);
+                <tr>
+                    <td>@(producto != null ? producto.IdDetalleInventarioNavigation.IdProductoNavigation.NombreProducto : "Nombre no encontrado")</td>
+                    <td>@item.PrecioVenta</td>
+                    <td>@item.Cantidad</td>
+                    <td>@item.SubTotal</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger"
+                        @onclick="@(() => EliminarProducto(item.IdInventario))">
+                            <span class="oi oi-trash"></span>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+
+    </table>
+
+
+    <div class="row mb-3 justify-content-end">
+        <div class="col-2">
+            <div class="form-group">
+                <label for="total">Total</label>
+                <InputNumber id="total" disabled class="form-control" @bind-Value="@venta.Total"></InputNumber>
+            </div>
+        </div>
+        <div class="col-12">
+            <!-- Nueva columna que ocupará el ancho completo -->
+            <div class="row justify-content-end mt-3">
+                <div class="col-lg-2 justify-content-center">
+                    <button class="btn-realiza" @onclick="TerminarVenta">Terminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+
+</div>
+<script>
+    function setValue(element, value) {
+        element.value = value;
+    }
+</script>
+
+@code {
+    List<InventarioDTO> Producto = new List<InventarioDTO>();
+    List<InventarioDTO> ProductoOriginales = new List<InventarioDTO>();
+    List<InventarioDTO> productosFiltrados = new List<InventarioDTO>();
+    public InventarioDTO ProductoSeleccionado { get; set; } = null; 
+    string filtroNombre = "";
+
+
+    List<InventarioDTO> Productos = new List<InventarioDTO>();
+
+    VentaDTO venta = new VentaDTO() { TblDetalleVenta = new List<DetalleVentaDTO>() };
+    SesionDTO sesionUsuario;
+
+    ElementReference filtroInput;
+
+    int idProducto = 0;
+    int IdCliente = 0;
+    int cantidad = 0;
+    int total = 0;
+    double precio = 0;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            ProductoOriginales = await productoServicio.Lista();
+            Producto = new List<InventarioDTO>(ProductoOriginales);
+            sesionUsuario = await sessionStorageService.ObtenerStorage<SesionDTO>("sesionUsuario");
+
+            venta.NumeroFactura = await ventaServicio.ObtenerUltimoNumeroFactura();
+
+
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("console.error", "Error al obtener el objeto de sesión:", ex.Message);
+        }
+    }
+
+    private async Task FiltrarProductos(ChangeEventArgs e)
+    {
+        filtroNombre = e.Value.ToString();
+        if (!string.IsNullOrEmpty(filtroNombre))
+        {
+            var filtroMinusculas = filtroNombre.ToLower();
+
+            productosFiltrados = ProductoOriginales
+                .Where(p => p.IdDetalleInventarioNavigation.IdProductoNavigation.NombreProducto.ToLower().Contains(filtroMinusculas))
+                .ToList();
+        }
+        else
+        {
+            productosFiltrados = new List<InventarioDTO>(ProductoOriginales);
+        }
+    }
+
+    private async Task SeleccionarProducto(InventarioDTO productoSeleccionado)
+    {
+        ProductoSeleccionado = productoSeleccionado;
+        precio = productoSeleccionado.IdDetalleInventarioNavigation.IdProductoNavigation.PrecioVenta;
+        // Actualizar la lista de productos filtrados cuando se selecciona un producto
+        productosFiltrados = new List<InventarioDTO> { ProductoSeleccionado };
+
+
+        StateHasChanged();
+    }
+
+
+
+
+    private async Task AgregarProducto()
+    {
+        if (ProductoSeleccionado == null)
+        {
+            await MostrarAlertaAdvertencia("Seleccione un producto");
+            return;
+        }
+        // Verifica si el producto ya existe en la lista de venta
+        var productoExistente = venta.TblDetalleVenta.FirstOrDefault(p => p.IdInventario == ProductoSeleccionado.IdInventario);
+
+        if (cantidad <= 0)
+        {
+            await MostrarAlertaError("La cantidad no puede ser menor a 0");
+            await JSRuntime.InvokeVoidAsync("console.log", cantidad);
+            return;
+        }
+        else if (productoExistente != null)
+        {
+            // Actualiza la cantidad y el subtotal si el producto ya existe
+            productoExistente.Cantidad += cantidad;
+            productoExistente.SubTotal = productoExistente.Cantidad * productoExistente.PrecioVenta;
+        }
+        else
+        {
+            var nuevoDetalle = new DetalleVentaDTO
+                {
+                    IdInventario = ProductoSeleccionado.IdInventario,
+                    PrecioVenta = Convert.ToInt32(ProductoSeleccionado.IdDetalleInventarioNavigation.IdProductoNavigation.PrecioVenta),
+                    Cantidad = cantidad,
+                    Descuento = 0,
+                    SubTotal = Convert.ToInt32(ProductoSeleccionado.IdDetalleInventarioNavigation.IdProductoNavigation.PrecioVenta * cantidad),
+                    Estado = true
+                };
+
+            venta.TblDetalleVenta.Add(nuevoDetalle);
+
+            ProductoSeleccionado.Existencia -= cantidad;
+        }
+
+        venta.Total = venta.TblDetalleVenta.Sum(item => item.SubTotal);
+        ProductoSeleccionado = null; 
+        precio = 0;
+        cantidad = 0;
+        filtroNombre = "";
+        await JSRuntime.InvokeVoidAsync("setValue", filtroInput, ""); 
+
+    }
+
+
+ 
+    public void EliminarProducto(int id)
+    {
+        var producto = venta.TblDetalleVenta.First(p => p.IdInventario == id);
+
+        venta.TblDetalleVenta.Remove(producto);
+        venta.SubTotal = venta.TblDetalleVenta.Sum(p => p.SubTotal);
+
+    }
+
+    public async Task TerminarVenta()
+    {
+
+        if (string.IsNullOrWhiteSpace(venta.NombreCliente) || venta.Total <= 0)
+        {
+            await MostrarAlertaError("Todos los campos son obligatorios");
+            return;
+        }
+
+        venta.Iva = 0;
+        venta.Estado = true;
+        venta.FechaVenta = DateTime.Now;
+        venta.Descuento = 0;
+        venta.SubTotal = venta.TblDetalleVenta.Sum(item => item.SubTotal);
+        venta.IdUsuario = sesionUsuario.IdUsuario;
+
+        await JSRuntime.InvokeVoidAsync("console.log", sesionUsuario.IdUsuario);
+        var result = await ventaServicio.Guardar(venta);
+
+        if (result)
+        {
+
+            venta.TblDetalleVenta = new List<DetalleVentaDTO>();
+            await MostrarAlertaExito("La venta se ha realizado con exito");
+
+        }
+
+
+        await ventaServicio.ObtenerUltimoNumeroFactura();
+    }
+
+
+
+    private async Task MostrarAlertaError(string mensaje)
+    {
+        await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Error",
+                Text = mensaje,
+                Icon = SweetAlertIcon.Error,
+                ConfirmButtonText = "OK"
+            });
+    }
+
+
+    private async Task MostrarAlertaAdvertencia(string mensaje)
+    {
+        await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Error",
+                Text = mensaje,
+                Icon = SweetAlertIcon.Warning,
+                ConfirmButtonText = "OK"
+            });
+    }
+    private async Task MostrarAlertaExito(string mensaje)
+    {
+        await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Éxito",
+                Text = mensaje,
+                Icon = SweetAlertIcon.Success,
+                ConfirmButtonText = "OK"
+            });
+    }
+
+
+}

@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\TiendaZapateria.Client.props" />
+</Project>

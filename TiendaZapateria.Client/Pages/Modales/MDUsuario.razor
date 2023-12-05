@@ -1,0 +1,232 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@inject IJSRuntime JSRuntime
+@inject SweetAlertService Swal;
+@inject IRolService rolService
+@inject IUsuarioService usuarioService
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components.Authorization;
+@attribute [Authorize(Roles = "Administrador")]
+
+<EditForm Model="entidad" OnValidSubmit="OnValidSubmit">
+
+    <div Model="entidad" class="modal fade" id="modalAgregar" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header color-title">
+                    <h5 class="modal-title">@titulo</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="CerrarModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <label for="nombreCategoria">Primer Nombre</label>
+                        <input type="text" class="form-control" id="nombreCategoria" @bind="entidad.PrimerNombre" />
+                    </div>
+
+                    <div class="form-group">
+                            <label for="nombreCategoria">Segundo Nombre</label>
+                            <input type="text" class="form-control" id="nombreCategoria" @bind="entidad.SegundoNombre" />
+                    </div>
+
+                       
+                    <div class="form-group">
+                       <label for="nombreCategoria">Primer Apellido</label>
+                        <input type="text" class="form-control" id="nombreCategoria" @bind="entidad.PrimerApellido" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nombreCategoria">Segundo Apellido</label>
+                        <input type="text" class="form-control" id="nombreCategoria" @bind="entidad.SegundoApellido" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Rol</label>
+                        <InputSelect class="form-select" @bind-Value="entidad.IdRol">
+                            <option value="0">-- Seleccionar --</option>
+                            @foreach (var item in listaRol)
+                            {
+                                <option value="@item.IdRol">@item.NombreRol</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nombreCategoria">Email</label>
+                        <input type="text" class="form-control" id="nombreCategoria" @bind="entidad.Email" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nombreCategoria">Nombre de Usuario</label>
+                        <input type="text" class="form-control" id="nombreCategoria" @bind="entidad.NombreUsuario" />
+                    </div>
+                            
+                     
+                    <div class="form-group">
+                        <label for="nombreCategoria">Clave Acceso</label>
+                        <input type="text" class="form-control" id="nombreCategoria" @bind="entidad.ClaveAcceso" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nombreCategoria">Telefono</label>
+                        <input type="number" class="form-control" id="nombreCategoria" @bind="entidad.Telefono" />
+                    </div>
+
+
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cerrar" @onclick="CerrarModal">Cancelar</button>
+                    <button class="btn-guardar" type="submit">
+                        @btnTexto
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</EditForm>
+
+
+
+@code {
+    public int idEditar;
+
+    [Parameter]
+    public EventCallback OnElementoActualizado { get; set; }
+
+
+    [Parameter]
+    public EventCallback OnElementoNuevo { get; set; }
+
+    List<RolDTO> listaRol = new List<RolDTO>();
+
+    string titulo = string.Empty;
+    string btnTexto = string.Empty;
+
+    registrarUsuarioDTO entidad = new registrarUsuarioDTO();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaRol = await rolService.Lista();
+    }
+
+    public async Task Actualizar(int id,int IdRol, string primerNombre, string segundoNombre, string primerApellido, string segundoApellido, string Email, string nombreUsuario,
+        string ClaveAcceso,int Telefono, string tituloEdit, string btn)
+    {
+        if (idEditar == 0)
+        {
+            idEditar = id; // Asignar el ID si es una nueva categoría
+        }
+        entidad.IdUsuario = id;
+        entidad.IdRol = IdRol;
+        entidad.PrimerNombre = primerNombre;
+        entidad.SegundoNombre = segundoNombre;
+        entidad.PrimerApellido = primerApellido;
+        entidad.SegundoApellido = segundoApellido;
+        entidad.Email = Email;
+        entidad.NombreUsuario = nombreUsuario;
+        entidad.ClaveAcceso = ClaveAcceso;
+        entidad.Telefono = Telefono;
+        btnTexto = btn;
+        titulo = tituloEdit;
+
+
+    }
+
+
+    public async Task Agregar(string tituloEdit, string btn)
+    {
+
+        btnTexto = btn;
+        titulo = tituloEdit;
+    }
+
+
+
+
+
+    private async Task OnValidSubmit()
+    {
+
+        if (string.IsNullOrWhiteSpace(entidad.PrimerNombre) || string.IsNullOrWhiteSpace(entidad.SegundoNombre) || string.IsNullOrWhiteSpace(entidad.PrimerApellido) || string.IsNullOrWhiteSpace(entidad.SegundoApellido) ||
+        string.IsNullOrWhiteSpace(entidad.Email) || string.IsNullOrWhiteSpace(entidad.NombreUsuario))
+        {
+           
+            await MostrarMensajeError("Todos los campos son obligatorios");
+        }else if (entidad.Telefono == null || entidad.IdRol == 0)
+        {
+            await MostrarMensajeError("Todos los campos son obligatorios");
+        }
+        else
+        {
+            int idDevuelto = 0;
+            bool operacionExitosa = false;
+            if (idEditar == 0)
+            {
+
+                idDevuelto = await usuarioService.Guardar(entidad);
+                await MostrarMensajeExito("Agregado Correctamente");
+                await CerrarModal();
+                await OnElementoActualizado.InvokeAsync();
+
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("console.log", entidad);
+                operacionExitosa = await usuarioService.Editar(entidad);
+                await MostrarMensajeExito("Editado Correctamente");
+                await CerrarModal();
+                await OnElementoActualizado.InvokeAsync();
+
+            }
+
+        }
+
+
+
+    }
+
+    private async Task MostrarMensajeError(string mensaje)
+    {
+
+        await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Error",
+                Text = mensaje,
+                Icon = SweetAlertIcon.Error,
+                ConfirmButtonText = "OK"
+            });
+    }
+
+
+    private async Task MostrarMensajeExito(string mensaje)
+    {
+
+        await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Exito",
+                Text = mensaje,
+                Icon = SweetAlertIcon.Success,
+                ConfirmButtonText = "OK"
+            });
+    }
+
+
+
+
+    public async Task MostrarModal()
+    {
+        await JSRuntime.InvokeVoidAsync("modalFunctions.mostrarModal", "modalAgregar");
+    }
+
+    public async Task CerrarModal()
+    {
+        await JSRuntime.InvokeVoidAsync("modalFunctions.cerrarModal", "modalAgregar");
+
+        idEditar = 0;
+        entidad = new registrarUsuarioDTO();
+    }
+}

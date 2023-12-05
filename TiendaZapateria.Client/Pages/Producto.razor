@@ -1,0 +1,223 @@
+﻿@page "/productos"
+
+@inject IJSRuntime JSRuntime
+@inject SweetAlertService Swal
+@inject IProductoService productoService;
+@inject NavigationManager navegacion;
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components.Authorization;
+@using TiendaZapateria.Client.Pages.Modales;
+@attribute [Authorize(Roles = "Administrador, Empleado")]
+
+@using TiendaZapateria.Client.wwwroot.Paginacion;
+
+<h3>Productos</h3>
+
+<button class="btn-grad-1 mb-3" @onclick="MostrarModalAgregar">Nuevo Producto</button>
+
+<div class="mb-3">
+    <input type="text" class="form-control" @oninput="HandleSearch" placeholder="Filtrar por Nombre Producto o Marca">
+
+</div>
+
+<div class="table-responsive-sm">
+    <table class="table table-striped">
+        <thead class="">
+            <tr>
+                <th>Nombre Producto</th>
+                <th>Marca</th>
+                <th>Categoria</th>
+                <th>Talla</th>
+                <th>Existencia</th>
+                <th>Precio Compra</th>
+                <th>Precio Venta</th>
+                <th>Lote</th>
+                <th>Fecha Ingreso</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (paginatedList != null)
+            {
+                var elementosFiltrada = string.IsNullOrEmpty(filtroNombre)
+                ? paginatedList
+                : paginatedList.Where(c => c.IdDetalleInventarioNavigation.IdProductoNavigation.NombreProducto.Contains(filtroNombre, StringComparison.OrdinalIgnoreCase) || c.IdDetalleInventarioNavigation.IdMarcaNavigation.NombreMarca.Contains(filtroNombre, StringComparison.OrdinalIgnoreCase));
+
+                @foreach (var item in elementosFiltrada)
+                {
+                    <tr>
+                        <td>@item.IdDetalleInventarioNavigation.IdProductoNavigation.NombreProducto</td>
+                        <td>@item.IdDetalleInventarioNavigation.IdMarcaNavigation.NombreMarca</td>
+                        <td>@item.IdDetalleInventarioNavigation.IdCategoriaNavigation.NombreCategoria</td>
+                        <td>@item.IdDetalleInventarioNavigation.IdTallaNavigation.TallaEuropea</td>
+                        <td>@item.Existencia</td>
+                        <td>@item.PrecioCompra</td>
+                        <td>@item.IdDetalleInventarioNavigation.IdProductoNavigation.PrecioVenta</td>
+                        <td>@item.Lote</td>
+                        <td>@item.FechaIngreso</td>
+                        <td>
+                            <div class="d-flex">
+                                <button class="btn btn-primary btn-sm mb-2 d-block" @onclick="() => MostrarModalEditar(item.IdInventario)">
+                                    <i class="oi oi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-danger btn-sm ms-2 mb-2 d-block" @onclick="(() => Eliminar(item.IdInventario, item.IdDetalleInventarioNavigation.IdProductoNavigation.NombreProducto))">
+                                    <i class="oi oi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+
+        </tbody>
+    </table>
+</div>
+<div class="d-flex justify-content-end mt-3">
+    <Paginacion CurrentPage="currentPage"
+                ItemsPerPage="itemsPerPage"
+                TotalItems="lista.Count"
+                CurrentPageChanged="HandlePageChange" />
+</div>
+
+
+<MDProducto @ref="modalAgregar" OnElementoActualizado="HandleElementoActualizado"></MDProducto>
+
+
+@code {
+    List<InventarioDTO> lista = new List<InventarioDTO>();
+
+    IEnumerable<InventarioDTO>? paginatedList;
+    int currentPage = 1;
+    int itemsPerPage = 10;
+
+    string filtroNombre = string.Empty;
+
+    private async Task HandleSearch(ChangeEventArgs e)
+    {
+        filtroNombre = e.Value.ToString();
+        UpdatePaginatedList();
+    }
+
+
+    private async Task HandlePageChange(int newPage)
+    {
+        currentPage = newPage;
+        UpdatePaginatedList();
+        StateHasChanged(); // Actualiza el componente
+    }
+    private async Task HandleElementoActualizado()
+    {
+        lista = await productoService.Lista();
+        if (lista != null)
+        {
+            UpdatePaginatedList();
+            StateHasChanged();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        lista = await productoService.Lista();
+        UpdatePaginatedList();
+    }
+
+    private void UpdatePaginatedList()
+    {
+
+        paginatedList = lista.Skip((currentPage - 1) * itemsPerPage).Take(itemsPerPage);
+
+    }
+
+
+
+    private async Task Eliminar(int id, string nombre)
+    {
+        var resultadoVerificacion = await productoService.VerificarUso(id);
+
+        if (resultadoVerificacion)
+        {
+            await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Error",
+                    Text = "El campo está siendo utilizado en otra tabla",
+                    Icon = SweetAlertIcon.Warning,
+                    ConfirmButtonText = "OK"
+                });
+        }
+        else
+        {
+            var resultado = await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "¿Está Seguro?",
+                    Text = "Eliminar" + " " + nombre,
+                    Icon = SweetAlertIcon.Warning,
+                    ShowCancelButton = true,
+                    ConfirmButtonText = "Eliminar",
+                    CancelButtonText = "Volver"
+                });
+
+            if (resultado.IsConfirmed)
+            {
+                var eliminado = await productoService.Eliminar(id);
+
+                if (eliminado)
+                {
+                    lista = lista!.FindAll(e => e.IdInventario != id);
+                    UpdatePaginatedList();
+                    await MostrarAlertaEliminacion();
+                }
+            }
+        }
+    }
+
+    private async Task MostrarAlertaEliminacion()
+    {
+        await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Producto Eliminado",
+                Text = "El Producto ha sido eliminado exitosamente",
+                Icon = SweetAlertIcon.Success,
+                ConfirmButtonText = "OK"
+            });
+    }
+
+    MDProducto modalAgregar; // Referencia al componente de modal
+
+    public void MostrarModalAgregar()
+    {
+        var btnTexto = "Guardar";
+        var titulo = "Agregar Nuevo";
+        modalAgregar.Agregar(titulo, btnTexto);
+        modalAgregar.MostrarModal();
+
+
+    }
+
+
+    public async Task MostrarModalEditar(int id)
+    {
+        var Editar = await productoService.Buscar(id);
+
+        if (Editar != null)
+        {
+            var btnTexto = "Actualizar";
+            var titulo = "Editar";
+            string estadoString = Editar.Estado.ToString();
+
+            Editar.IdDetalleInventarioNavigation.IdColor = 1;
+            Editar.IdDetalleInventarioNavigation.IdMaterial = 1;
+
+            modalAgregar.Actualizar(Editar.IdInventario, Editar.PrecioCompra, Editar.Existencia, Editar.FechaIngreso, Editar.Lote, 
+               Editar.IdDetalleInventarioNavigation.IdCategoria, Editar.IdDetalleInventarioNavigation.IdMarca, Editar.IdDetalleInventarioNavigation.IdColor, 
+               Editar.IdDetalleInventarioNavigation.IdTalla, Editar.IdDetalleInventarioNavigation.IdMaterial, Editar.IdDetalleInventarioNavigation.IdProductoNavigation.NombreProducto,
+               Editar.IdDetalleInventarioNavigation.IdProductoNavigation.PrecioVenta ,titulo, btnTexto);
+            modalAgregar.MostrarModal();
+        }
+    }
+
+
+
+}
+
+
+

@@ -1,0 +1,200 @@
+﻿@page "/roles"
+
+@inject IJSRuntime JSRuntime
+@inject SweetAlertService Swal
+@inject IRolService rolService;
+@inject NavigationManager navegacion;
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components.Authorization;
+@using TiendaZapateria.Client.Pages.Modales;
+@attribute [Authorize(Roles = "Administrador")]
+
+@using TiendaZapateria.Client.wwwroot.Paginacion;
+
+<h3>Categorias</h3>
+
+<button class="btn-grad-1 mb-3" @onclick="MostrarModalAgregar">Nuevo Rol</button>
+
+<div class="mb-3">
+    <input type="text" class="form-control" @oninput="HandleSearch" placeholder="Filtrar por Nombre">
+
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nombre Rol</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (paginatedList != null)
+            {
+                var elementosFiltrada = string.IsNullOrEmpty(filtroNombre)
+                ? paginatedList
+                : paginatedList.Where(c => c.NombreRol.Contains(filtroNombre, StringComparison.OrdinalIgnoreCase));
+
+                @foreach (var item in elementosFiltrada)
+                {
+                    <tr>
+                        <td>@item.NombreRol</td>
+                        <td>
+                            <div class="d-flex">
+                                <button class="btn btn-primary btn-sm mb-2 d-block" @onclick="() => MostrarModalEditar(item.IdRol)">
+                                    <i class="oi oi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-danger btn-sm ms-2 mb-2 d-block" @onclick="(() => Eliminar(item.IdRol, item.NombreRol))">
+                                    <i class="oi oi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+
+        </tbody>
+    </table>
+</div>
+<div class="d-flex justify-content-end mt-3">
+    <Paginacion CurrentPage="currentPage"
+                ItemsPerPage="itemsPerPage"
+                TotalItems="lista.Count"
+                CurrentPageChanged="HandlePageChange" />
+</div>
+
+
+<MDRol @ref="modalAgregar" OnElementoActualizado="HandleElementoActualizado"></MDRol>
+
+
+@code {
+    List<RolDTO> lista = new List<RolDTO>();
+
+    IEnumerable<RolDTO>? paginatedList;
+    int currentPage = 1;
+    int itemsPerPage = 10;
+
+    string filtroNombre = string.Empty;
+
+    private async Task HandleSearch(ChangeEventArgs e)
+    {
+        filtroNombre = e.Value.ToString();
+        UpdatePaginatedList();
+    }
+
+
+    private async Task HandlePageChange(int newPage)
+    {
+        currentPage = newPage;
+        UpdatePaginatedList();
+        StateHasChanged(); // Actualiza el componente
+    }
+    private async Task HandleElementoActualizado()
+    {
+        lista = await rolService.Lista();
+        if (lista != null)
+        {
+            UpdatePaginatedList();
+            StateHasChanged();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        lista = await rolService.Lista();
+        UpdatePaginatedList();
+    }
+
+    private void UpdatePaginatedList()
+    {
+
+        paginatedList = lista.Skip((currentPage - 1) * itemsPerPage).Take(itemsPerPage);
+
+    }
+
+
+
+    private async Task Eliminar(int id, string nombre)
+    {
+        var resultadoVerificacion = await rolService.VerificarUso(id);
+
+        if (resultadoVerificacion)
+        {
+            await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Error",
+                    Text = "El campo está siendo utilizado en otra tabla",
+                    Icon = SweetAlertIcon.Warning,
+                    ConfirmButtonText = "OK"
+                });
+        }
+        else
+        {
+            var resultado = await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "¿Está Seguro?",
+                    Text = "Eliminar" + " " + nombre,
+                    Icon = SweetAlertIcon.Warning,
+                    ShowCancelButton = true,
+                    ConfirmButtonText = "Eliminar",
+                    CancelButtonText = "Volver"
+                });
+
+            if (resultado.IsConfirmed)
+            {
+                var eliminado = await rolService.Eliminar(id);
+
+                if (eliminado)
+                {
+                    lista = lista!.FindAll(e => e.IdRol != id);
+                    UpdatePaginatedList();
+                    await MostrarAlertaEliminacion();
+                }
+            }
+        }
+    }
+
+    private async Task MostrarAlertaEliminacion()
+    {
+        await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Rol Eliminado",
+                Text = "El Rol ha sido eliminado exitosamente",
+                Icon = SweetAlertIcon.Success,
+                ConfirmButtonText = "OK"
+            });
+    }
+
+    MDRol modalAgregar; // Referencia al componente de modal
+
+    public void MostrarModalAgregar()
+    {
+        var btnTexto = "Guardar";
+        var titulo = "Agregar Nuevo";
+        modalAgregar.Agregar(titulo, btnTexto);
+        modalAgregar.MostrarModal();
+
+
+    }
+
+
+    public async Task MostrarModalEditar(int id)
+    {
+        var Editar = await rolService.Buscar(id);
+
+        if (Editar != null)
+        {
+            var btnTexto = "Actualizar";
+            var titulo = "Editar";
+            string estadoString = Editar.Estado.ToString();
+            modalAgregar.Actualizar(Editar.IdRol, Editar.NombreRol, titulo, btnTexto);
+            modalAgregar.MostrarModal();
+        }
+    }
+
+
+
+}
+
+
+
